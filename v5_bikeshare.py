@@ -3,6 +3,14 @@ import pandas as pd
 import numpy as np
 import datetime
 
+#I wanted to learn how to support multiple input values.
+#	For this purpose the code supports comma separated list of cities as an input.
+#	Testing example can include cities outside of the CITY_DATA 
+#	input: Moscow, Prague, Chicago - will properly recognise that we have data only for Chicago.
+#	input: Moscow, Prague, Chicago, Washington - will properly recognise that we have data only for Chicago and Washington.
+
+
+
 #CITY_DATA, months, days are global variables.
 #This way all functions can use the data (if required).
 #This also simulates that the values in these variables could be imported from external databases etc.
