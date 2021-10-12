@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 import datetime
 
+#The code is prepared to support various numbers of cities that might be added to CITY_DATA dictionary
+#I also wanted to learn how to do error handling for special case: when some key columns are missing from the data file
+
 #CITY_DATA, months, days are global variables.
 #This way all functions can use the data (if required).
 #This also simulates that the values in these variables could be imported from external databases etc.
@@ -10,7 +13,7 @@ import datetime
 CITY_DATA = { 'chicago': 'chicago.csv',
               'new york city': 'new_york_city.csv',
               'washington': 'washington.csv',
-			  #'barcelona': 'barcelona.csv' 
+			  'barcelona': 'barcelona.csv' 
 			  }
 
 months = ['january', 'february', 'march', 'april', 'may', 'june']
@@ -209,7 +212,7 @@ def load_data(city, month, day):
 		return day_bikes
 	#if the required columns are not present in dataframe, program will break
 	else:
-		print('It seems there is no [Start Time] and/or [End Time] columns in the data for the city {}.\n These columns are necessary to provide time analysis.'.format(city.title()))
+		print('It seems there is no [Start Time] and/or [End Time] columns in the data for the city {}.\n These columns are necessary to provide time analysis.\n'.format(city.title()))
 		return city_bikes
 		#sys.exit('Please start again')
 		
@@ -284,21 +287,24 @@ def station_stats(city_bikes):
 def trip_duration_stats(city_bikes):
 	"""Displays statistics on the total and average trip duration."""
 
-	print('\nCalculating Trip Duration...\n')
-	start_time = time.time()
 	
 	trip_duration_in_df = 'Trip Duration' in city_bikes
 	end_time_in_df = 'End Time' in city_bikes
 	start_time_in_df =  'Start Time' in city_bikes
 	if trip_duration_in_df:
+		print('\nCalculating Trip Duration...\n')
+		start_time = time.time()
 		total_travel_time = city_bikes['Trip Duration'].sum()
 		print('Total travel time: ', str(datetime.timedelta(seconds=int(total_travel_time))))
 		# display mean travel time
 		average_time = city_bikes['Trip Duration'].mean()
 		print('Average time of the trip: ', str(datetime.timedelta(seconds=int(average_time))))
+		print("\nThis took %s seconds." % (time.time() - start_time))
 	else:
 		if end_time_in_df and start_time_in_df:
 			# display total travel time
+			print('\nCalculating Trip Duration...\n')
+			start_time = time.time()
 			travel_time = (city_bikes['End Time'] - city_bikes['Start Time'])
 			city_bikes['Travel Time'] = travel_time.dt.seconds 
 			total_travel_time = city_bikes['Travel Time'].sum()
@@ -306,11 +312,11 @@ def trip_duration_stats(city_bikes):
 			# display mean travel time
 			average_time = city_bikes['Travel Time'].mean()
 			print('Average time of the trip: ', str(datetime.timedelta(seconds=int(average_time))))
+			print("\nThis took %s seconds." % (time.time() - start_time))
 		else:
-			print('Skipping trip duration stats - required data columns are missing')
+			print('\nSkipping Trip Duration stats - required data columns are missing\n')
 	
-	print("\nThis took %s seconds." % (time.time() - start_time))
-	print('-'*40)
+		print('-'*40)
 
 
 def user_stats(city_bikes):
@@ -352,10 +358,59 @@ def user_stats(city_bikes):
 	print('-'*40)
 
 
+def data_browser(city_bikes):
+	"""Displays raw data from the files."""
+	
+	counter = 0
+	for index, row in city_bikes.iterrows():
+		print(city_bikes[counter:counter+5]) 
+		counter += 5
+
+		print('\nWould you like to see more data?\n')
+		while True:
+			testinput2 = input('\tPlease type [yes/no] :').lower()
+			if testinput2 == 'yes' or testinput2 == 'no':
+				break
+				
+		#check if we have finished data browsing
+		if testinput2 == 'no':
+			print('-'*40)
+			print('\nClosing Data Sample\n')
+			print('-'*40)
+			break
+
+		
+
+
+
 	
 def main():
 	while True:
 		cities, month, day = get_filters()
+		
+		#would you like to see the data samples?
+		print('\nBefore the analysis, would you like to see data samples?\n')
+		print('-'*40)
+		while True:
+			testinput = input('\tPlease type [yes/no] :').lower()
+			if testinput == 'yes' or testinput == 'no':
+				break
+		if testinput == 'yes':			
+			for city in cities:
+				print('-'*40)
+				print('\nWould you like to see data samples for the city: {}?\n'.format(city.title()))
+				print('-'*40)
+				while True:
+					testinput2 = input('\tPlease type [yes/no] :').lower()
+					if testinput2 == 'yes' or testinput2 == 'no':
+						break
+					
+				#check if we want to browse
+				if testinput2 == 'yes':
+					df = load_data(city, month, day)
+					data_browser(df)
+
+		#analysis
 		for city in cities:
 			print('-'*40)
 			print('\nAnalysing data for city: {}\n'.format(city.title()))
@@ -366,6 +421,9 @@ def main():
 			trip_duration_stats(df)
 			user_stats(df)
 			print('\n')
+		
+		#would you like to see the data samples?
+		
 		
 		print('\nWould you like to restart? Enter yes or no.\n')
 		while True:
