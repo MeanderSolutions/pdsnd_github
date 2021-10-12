@@ -9,6 +9,20 @@ import datetime
 #	input: Moscow, Prague, Chicago - will properly recognise that we have data only for Chicago.
 #	input: Moscow, Prague, Chicago, Washington - will properly recognise that we have data only for Chicago and Washington.
 
+#I wanted to learn how to handle error in case of missing file.
+#	In CITY_DATA I have added entry for Barcelona. 
+#	If file barcelona.csv is not present - the error is handled properly.
+#	Testing example can include Barcelona mixed with other cities.
+#	input: Moscow, Prague, Barcelona, Chicago - will properly recognise that we have data only for Barcelona, Chicago.
+#	                                          - will properly handle error in case barcelona.csv is missing	
+#	                                          - will properly analyse data for Chicago 
+
+#I also wanted to learn how to handle error for special case: 
+#	when key columns are missing from the data file, that would crash load_data function
+#	To demonstrate this functionality, I provided additional file barcelona.csv (uploaded with the project file)
+#	If you have an option to add barcelona.csv to the existing .csv files in the project, please do so :)
+#	If the file barcelona.csv is uploaded to the desired location, you can see error handling for the missing columns
+#	columns deleted on puprose from barcelona.csv: [Start Date], [End Date], [Trip Duration] 
 
 
 #CITY_DATA, months, days are global variables.
