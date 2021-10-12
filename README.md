@@ -7,8 +7,10 @@
 Meander_Bikeshare_Project
 
 ### Description
-Describe what your project is about and what it does
 
+This project focuses on performing a rudimentary analysis on the bikeshare data from four cities 
+- Chicago, Washington, New York City, Barcelona - to display information such as most popular days or most common
+stations.
 ### Files used
 Include the files used
 
