@@ -3,26 +3,48 @@ import pandas as pd
 import numpy as np
 import datetime
 
-#The code is prepared to support various numbers of cities that might be added to CITY_DATA dictionary
-#I also wanted to learn how to do error handling for special case: when some key columns are missing from the data file
+#I wanted to learn how to support multiple input values.
+#	For this purpose the code supports comma separated list of cities as an input.
+#	Testing example can include cities outside of the CITY_DATA 
+#	input: Moscow, Prague, Chicago - will properly recognise that we have data only for Chicago.
+#	input: Moscow, Prague, Chicago, Washington - will properly recognise that we have data only for Chicago and Washington.
+
+#I wanted to learn how to handle error in case of missing file.
+#	In CITY_DATA I have added entry for Barcelona. 
+#	If file barcelona.csv is not present - the error is handled properly.
+#	Testing example can include Barcelona mixed with other cities.
+#	input: Moscow, Prague, Barcelona, Chicago - will properly recognise that we have data only for Barcelona, Chicago.
+#	                                          - will properly handle error in case barcelona.csv is missing	
+#	                                          - will properly analyse data for Chicago 
+
+#I also wanted to learn how to handle error for special case: 
+#	when key columns are missing from the data file, that would crash load_data function
+#	To demonstrate this functionality, I provided additional file barcelona.csv (uploaded with the project file)
+#	If you have an option to add barcelona.csv to the existing .csv files in the project, please do so :)
+#	If the file barcelona.csv is uploaded to the desired location, you can see error handling for the missing columns
+#	columns deleted on puprose from barcelona.csv: [Start Date], [End Date], [Trip Duration] 
+
+#I also wanted to learn how to handle case when column [Trip Duration] is missing
+#	In this case I tried to calculate trip duration, if possible
 
 #CITY_DATA, months, days are global variables.
-#This way all functions can use the data (if required).
-#This also simulates that the values in these variables could be imported from external databases etc.
+#	This way all functions can use the data (if required).
+#	This also simulates that the values in these variables could be imported from external databases etc.
 
 CITY_DATA = { 'chicago': 'chicago.csv',
               'new york city': 'new_york_city.csv',
               'washington': 'washington.csv',
-			  'barcelona': 'barcelona.csv' 
-			  }
+              'barcelona': 'barcelona.csv' }
 
 months = ['january', 'february', 'march', 'april', 'may', 'june']
 days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
+
+
 def get_filters():
 	"""
 	The design of the function get_filters() allows users to chose more than one city for analysis.
-	Asks user to specify a city/cities, month, and day to analyze.
+	It asks user to specify a city/cities, month, and day to analyze.
 
 	Returns:
 		list of (str) cities  - names of the city/cities to analyze
@@ -119,23 +141,20 @@ def get_filters():
 		print('-'*40)
 		print('\nPlease enter the month from the list:\n {}\n To chose all months, please enter: all\n'.format(months))
 		month = str(input('\t Your input: ')).lower()
-		try:	
-			if month != 'all':
-			# use the index of the months list to get the corresponding int
-				if month in months:
-					num_month = months.index(month) + 1
-					print('\nYou have chosen month: ', month.title())
-					print('-'*40)
-					break
-				else:
-					print('\nIt seems like you have entered the wrong month. Please try again\n')
-					print('-'*40)
-			elif month == 'all':
-				print('\nYou have chosen all months from the list')
+		if month != 'all':
+		# use the index of the months list to get the corresponding int
+			if month in months:
+				num_month = months.index(month) + 1
+				print('\nYou have chosen month: ', month.title())
 				print('-'*40)
 				break
-		except Exception as e:
-			print('\nException occurred: {}. Try again!'.format(e))
+			else:
+				print('\nIt seems like you have entered the wrong month. Please try again\n')
+				print('-'*40)
+		elif month == 'all':
+			print('\nYou have chosen all months from the list')
+			print('-'*40)
+			break
 			
 			
 	###########
@@ -147,24 +166,21 @@ def get_filters():
 	while True:
 		print('\nPlease enter the day from the list:\n {}\n To chose all days, please enter: all\n'.format(days))
 		day = str(input('\t Your input: ')).lower()
-		try:	
-			if day != 'all':
-			# use the index of the months list to get the corresponding int
-				if day in days:
-					num_day = days.index(day)
-					print('\nYou have chosen day: ', day.title())
-					print('-'*40)
-					break
-				else:
-					print('\nIt seems like you have entered the wrong day. Please try again\n')
-					print('-'*40)
-					print('-'*40)
-			elif day == 'all':
-				print('\nYou have chosen all days from the list')
+		if day != 'all':
+		# use the index of the months list to get the corresponding int
+			if day in days:
+				num_day = days.index(day)
+				print('\nYou have chosen day: ', day.title())
 				print('-'*40)
 				break
-		except Exception as e:
-			print('\nException occurred: {}. Try again!'.format(e))
+			else:
+				print('\nIt seems like you have entered the wrong day. Please try again\n')
+				print('-'*40)
+				print('-'*40)
+		elif day == 'all':
+			print('\nYou have chosen all days from the list')
+			print('-'*40)
+			break
 			
     
 	return cities, month, day
@@ -182,40 +198,42 @@ def load_data(city, month, day):
 	df - Pandas DataFrame containing city data filtered by month and day
 	"""
 	
-	#import sys
 	
 	filename = CITY_DATA[city]
-	city_bikes = pd.read_csv(filename)
+	try:
+		city_bikes = pd.read_csv(filename)
 
-	#check if columns Start Time and End Time, required for analysis, are in dataframe
-	start_time_in_df = 'Start Time' in city_bikes
-	end_time_in_df = 'End Time' in city_bikes
-	if start_time_in_df and end_time_in_df:
-		#convert the Start Time and End Time column to datetime
-		city_bikes['Start Time'] = pd.to_datetime(city_bikes['Start Time'])
-		city_bikes['End Time'] = pd.to_datetime(city_bikes['End Time'])
+		#check if columns Start Time and End Time, required for analysis, are in dataframe
+		start_time_in_df = 'Start Time' in city_bikes
+		end_time_in_df = 'End Time' in city_bikes
+		if start_time_in_df and end_time_in_df:
+			#convert the Start Time and End Time column to datetime
+			city_bikes['Start Time'] = pd.to_datetime(city_bikes['Start Time'])
+			city_bikes['End Time'] = pd.to_datetime(city_bikes['End Time'])
+				
+			#extract month and day of week from Start Time to create new columns
+			city_bikes['month'] = city_bikes['Start Time'].dt.month
+			city_bikes['day_of_week'] = city_bikes['Start Time'].dt.dayofweek
+			if month != 'all':
+				num_month = months.index(month) + 1
+				month_bikes = city_bikes[city_bikes['month'] == num_month]
+			else:
+				month_bikes = city_bikes
 			
-		#extract month and day of week from Start Time to create new columns
-		city_bikes['month'] = city_bikes['Start Time'].dt.month
-		city_bikes['day_of_week'] = city_bikes['Start Time'].dt.dayofweek
-		if month != 'all':
-			num_month = months.index(month) + 1
-			month_bikes = city_bikes[city_bikes['month'] == num_month]
+			if day != 'all':
+				num_day = days.index(day)
+				day_bikes = month_bikes[month_bikes['day_of_week'] == num_day]
+			else:
+				day_bikes = month_bikes
+			return day_bikes
+		#if the required columns are not present in dataframe, program will break
 		else:
-			month_bikes = city_bikes
-		
-		if day != 'all':
-			num_day = days.index(day)
-			day_bikes = month_bikes[month_bikes['day_of_week'] == num_day]
-		else:
-			day_bikes = month_bikes
-		return day_bikes
-	#if the required columns are not present in dataframe, program will break
-	else:
-		print('It seems there is no [Start Time] and/or [End Time] columns in the data for the city {}.\n These columns are necessary to provide time analysis.\n'.format(city.title()))
-		return city_bikes
-		#sys.exit('Please start again')
-		
+			print('It seems there is no [Start Time] and/or [End Time] columns in the data for the city {}.\n These columns are necessary to provide time analysis.\n'.format(city.title()))
+			return city_bikes
+	except Exception as e:
+		print('\nUnfortunately we cannot load the data file: {}\n{}\n Please contact our support: support@bestanlitics.com ;)'.format(filename, e))
+		df = pd.DataFrame()
+		return df
 	
 print('-'*40)
 
@@ -225,8 +243,7 @@ def time_stats(city_bikes):
 	
 	#check if columns Start Time and End Time, required for analysis, are in dataframe
 	start_time_in_df = 'Start Time' in city_bikes
-	end_time_in_df = 'End Time' in city_bikes
-	if start_time_in_df and end_time_in_df:
+	if start_time_in_df:
 		
 		print('\nCalculating The Most Frequent Times of Travel...\n')
 		start_time = time.time()
@@ -240,7 +257,7 @@ def time_stats(city_bikes):
 		city_bikes['day_of_week'] = city_bikes['Start Time'].dt.dayofweek 
 		most_common_day = city_bikes['day_of_week'].mode()[0]
 		#print('Most common day of week:', most_common_day)
-		print('Most common day of week:', days[most_common_day-1].title())
+		print('Most common day of week:', days[most_common_day].title())
 
 		# display the most common start hour
 		city_bikes['hour'] = city_bikes['Start Time'].dt.hour 
@@ -326,10 +343,16 @@ def user_stats(city_bikes):
 	start_time = time.time()
 
 	# Display counts of user types
-	usertype_count = city_bikes['User Type'].value_counts(dropna=False)
-	print('User type:\n', usertype_count)
+	user_type_in_df = 'User Type' in city_bikes
+	if user_type_in_df:
+		usertype_count = city_bikes['User Type'].value_counts(dropna=False)
+		print('User type:\n', usertype_count)
+	else: 
+		print("There is no data about user type for this particular city")
+	print('-'*20)
+
 	# Display counts of gender
-	gender_in_df = "Gender" in city_bikes
+	gender_in_df = 'Gender' in city_bikes
 	if gender_in_df:
 		gender_count = city_bikes['Gender'].value_counts(dropna=False)
 		print('-'*20)
@@ -389,26 +412,20 @@ def main():
 		cities, month, day = get_filters()
 		
 		#would you like to see the data samples?
-		print('\nBefore the analysis, would you like to see data samples?\n')
-		print('-'*40)
-		while True:
-			testinput = input('\tPlease type [yes/no] :').lower()
-			if testinput == 'yes' or testinput == 'no':
-				break
-		if testinput == 'yes':			
-			for city in cities:
-				print('-'*40)
-				print('\nWould you like to see data samples for the city: {}?\n'.format(city.title()))
-				print('-'*40)
-				while True:
-					testinput2 = input('\tPlease type [yes/no] :').lower()
-					if testinput2 == 'yes' or testinput2 == 'no':
-						break
+		print('\n\tWe can present data samples for {}\n'.format(cities))
+
+		for city in cities:
+			print('\n\tWould you like to see data samples for the city: {}?\n'.format(city.title()))
+			print('-'*40)
+			while True:
+				testinput2 = input('\tPlease type [yes/no] :').lower()
+				if testinput2 == 'yes' or testinput2 == 'no':
+					break
 					
-				#check if we want to browse
-				if testinput2 == 'yes':
-					df = load_data(city, month, day)
-					data_browser(df)
+			#check if we want to browse
+			if testinput2 == 'yes':
+				df = load_data(city, month, day)
+				data_browser(df)
 
 		#analysis
 		for city in cities:
@@ -416,14 +433,12 @@ def main():
 			print('\nAnalysing data for city: {}\n'.format(city.title()))
 			print('-'*40)
 			df = load_data(city, month, day)
-			time_stats(df)
-			station_stats(df)
-			trip_duration_stats(df)
-			user_stats(df)
+			if not df.empty:
+				time_stats(df)
+				station_stats(df)
+				trip_duration_stats(df)
+				user_stats(df)
 			print('\n')
-		
-		#would you like to see the data samples?
-		
 		
 		print('\nWould you like to restart? Enter yes or no.\n')
 		while True:
